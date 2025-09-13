@@ -39,6 +39,21 @@ function App() {
     setTotal(newTotal);
   };
 
+  // Nuevo: dividir un total entre todas las personas
+  const dividirTotalEntrePersonas = () => {
+    if (total <= 0 || users.length === 0) return;
+    const montoPorPersona = total / users.length;
+    const newUsers = users.map((user) => ({
+      ...user,
+      amount: montoPorPersona,
+    }));
+    setUsers(newUsers);
+    // Mostrar el resultado automáticamente
+    setTimeout(() => {
+      calculateSplit();
+    }, 0);
+  };
+
   // Calculate the split
   const calculateSplit = () => {
     // If there are no users or no expenses, don't calculate
@@ -118,7 +133,6 @@ function App() {
             value={userCount === 2 ? '' : userCount}
             onChange={(e) => {
               const value = e.target.value;
-              // Si está vacío, usamos 2 internamente pero no lo mostramos
               setUserCount(
                 value === '' ? 2 : Math.max(2, parseInt(value) || 2)
               );
@@ -126,6 +140,39 @@ function App() {
             className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-base"
             placeholder="2"
           />
+        </div>
+
+        {/* Nuevo: Campo para ingresar el total manualmente y botón para dividir */}
+        <div className="mb-4 sm:mb-6">
+          <label className="block text-gray-700 text-sm font-bold mb-2">
+            Total a dividir (opcional):
+          </label>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              type="number"
+              inputMode="decimal"
+              min="0"
+              value={total > 0 ? total : ''}
+              onChange={(e) => {
+                const value = parseFloat(e.target.value) || 0;
+                setTotal(value);
+              }}
+              className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-base"
+              placeholder="0.00"
+            />
+            <button
+              type="button"
+              className="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline"
+              onClick={dividirTotalEntrePersonas}
+              disabled={total <= 0 || users.length === 0}
+            >
+              Dividir entre todos
+            </button>
+          </div>
+          <p className="text-xs text-gray-500 mt-1">
+            Esto reemplazará los montos individuales con el total dividido en
+            partes iguales.
+          </p>
         </div>
 
         <div className="mb-4 sm:mb-6">
@@ -195,8 +242,8 @@ function App() {
 
           {results.length === 0 ? (
             <p className="text-gray-600">
-              No hay pagos pendientes. Todas las personas aportaron el mismo
-              monto.
+              Todas las personas deben pagar lo mismo: $
+              {(total / users.length).toFixed(2)}
             </p>
           ) : (
             <div className="space-y-4">
